@@ -15,3 +15,6 @@ This repository includes a diverse collection of projects, each demonstrating a 
 - **Theoretical Explanations:** Every notebook starts with a clear and concise explanation of the core theories, concepts, and mathematical foundations. This includes algorithmic principles and architectural patterns.
 - **Practical Application:** All projects use authentic, publicly available datasets. This approach allows for the exploration of real-world data challenges, such as data cleaning, preprocessing, and feature engineering.
 - **End-to-End Pipeline:** The notebooks guide you through the complete project lifecycle, from problem formulation and data acquisition to modeling and evaluation.
+
+## Getting Started
+To explore these projects, simply navigate to the notebook. You can view the notebooks directly on GitHub or clone the repository to run them locally. Each notebook is designed to be a standalone guide to its respective topic with end-to-end of project pipeline.
