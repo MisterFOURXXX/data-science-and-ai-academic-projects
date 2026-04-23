@@ -1,0 +1,64 @@
+stages:
+  prepare:
+    cmd: python src/data/prepare.py
+    deps:
+    - data/raw/train_data.csv
+    outs:
+    - data/processed/train.parquet
+    - data/processed/test.parquet
+
+  preprocess:
+    cmd: python src/features/preprocess.py
+    deps:
+    - data/processed/train.parquet
+    - data/processed/test.parquet
+    params:
+    - preprocess
+    - data
+    outs:
+    - data/processed/X_train.npy
+    - data/processed/y_train.npy
+    - data/processed/X_test.npy
+    - data/processed/y_test.npy
+    - models/preprocessor.pkl
+    - models/pca.pkl
+    - models/label_encoder.pkl
+
+  tune_weak:
+    cmd: PYTHONPATH=. python src/models/tune_weak_learners.py
+    deps:
+    - data/processed/X_train.npy
+    - data/processed/y_train.npy
+    params:
+    - models
+    outs:
+    - models/best_weak_params.json
+
+  train_final:
+    cmd: PYTHONPATH=. python src/models/train_final.py
+    deps:
+    - data/processed/X_train.npy
+    - data/processed/y_train.npy
+    - models/best_weak_params.json
+    - src/models/train_final.py
+    outs:
+    - models/final_stacking_model.pkl
+    - models/lgb_model.pkl
+    - models/xgb_model.pkl
+    - models/cat_model.pkl
+
+  evaluate:
+    cmd: PYTHONPATH=. python src/evaluation/evaluate.py
+    deps:
+    - models/final_stacking_model.pkl
+    - data/processed/X_test.npy
+    - data/processed/y_test.npy
+    outs:
+    - metrics/evaluation.json
+
+  test:
+    cmd: PYTHONPATH=. pytest tests/ --junitxml=metrics/test_report.xml
+    deps:
+    - models/final_stacking_model.pkl
+    outs:
+    - metrics/test_report.xml

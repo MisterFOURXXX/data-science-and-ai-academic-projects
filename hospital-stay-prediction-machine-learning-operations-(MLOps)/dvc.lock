@@ -1,0 +1,156 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/data/prepare.py
+    deps:
+    - path: data/raw/train_data.csv
+      hash: md5
+      md5: 3335c825be67b14f98ced74efa45b9df
+      size: 26915586
+    outs:
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: 4b8dd91b118f8905b8351fbdf1148844
+      size: 22894
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 04448aae8b047b34c7fe6b507d79af08
+      size: 50684
+  preprocess:
+    cmd: python src/features/preprocess.py
+    deps:
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: 4b8dd91b118f8905b8351fbdf1148844
+      size: 22894
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 04448aae8b047b34c7fe6b507d79af08
+      size: 50684
+    params:
+      params.yaml:
+        data:
+          sample_size: 2000
+          test_size: 0.2
+          random_state: 42
+        preprocess:
+          pca_variance: 0.95
+    outs:
+    - path: data/processed/X_test.npy
+      hash: md5
+      md5: d8e7a63d6e39749f4c4db3e0c011d200
+      size: 16128
+    - path: data/processed/X_train.npy
+      hash: md5
+      md5: af5b68139be780adefb6c6185aff144b
+      size: 184928
+    - path: data/processed/y_test.npy
+      hash: md5
+      md5: fa6854d3d9588601d98943847d90277f
+      size: 3328
+    - path: data/processed/y_train.npy
+      hash: md5
+      md5: 160e770b6c0b7c15b6b7a6aae5f7204a
+      size: 37088
+    - path: models/label_encoder.pkl
+      hash: md5
+      md5: 4c1a99726687a74d3bb8872d156f6aee
+      size: 663
+    - path: models/pca.pkl
+      hash: md5
+      md5: 7a3123183f107c31a29b358b7305cac6
+      size: 1647
+    - path: models/preprocessor.pkl
+      hash: md5
+      md5: fba70c900f055c70e633b1ba19d702ce
+      size: 6303
+  tune_weak:
+    cmd: PYTHONPATH=. python src/models/tune_weak_learners.py
+    deps:
+    - path: data/processed/X_train.npy
+      hash: md5
+      md5: 36a427e1d01873588bd5ad4ee385af48
+      size: 184928
+    - path: data/processed/y_train.npy
+      hash: md5
+      md5: 160e770b6c0b7c15b6b7a6aae5f7204a
+      size: 37088
+    params:
+      params.yaml:
+        models:
+          n_trials: 5
+          cv: 3
+          random_state: 42
+    outs:
+    - path: models/best_weak_params.json
+      hash: md5
+      md5: 84c3d998687e6761dec33f7e4e076518
+      size: 1169
+  train_final:
+    cmd: PYTHONPATH=. python src/models/train_final.py
+    deps:
+    - path: data/processed/X_train.npy
+      hash: md5
+      md5: 36a427e1d01873588bd5ad4ee385af48
+      size: 184928
+    - path: data/processed/y_train.npy
+      hash: md5
+      md5: 160e770b6c0b7c15b6b7a6aae5f7204a
+      size: 37088
+    - path: models/best_weak_params.json
+      hash: md5
+      md5: 84c3d998687e6761dec33f7e4e076518
+      size: 1169
+    - path: src/models/train_final.py
+      hash: md5
+      md5: a43e83c98a99b2dac5eb5054b5db74b3
+      size: 2905
+    outs:
+    - path: models/cat_model.pkl
+      hash: md5
+      md5: 3b374ceed7af31883345f942a96a7067
+      size: 39423271
+    - path: models/final_stacking_model.pkl
+      hash: md5
+      md5: 1d3507d64b96a94f21952892ee219bf3
+      size: 77503898
+    - path: models/lgb_model.pkl
+      hash: md5
+      md5: e626632c3b050152092203bb626088df
+      size: 29642508
+    - path: models/xgb_model.pkl
+      hash: md5
+      md5: 3c920a81a5b00523df58c5825a6f38b0
+      size: 8431824
+  evaluate:
+    cmd: PYTHONPATH=. python src/evaluation/evaluate.py
+    deps:
+    - path: data/processed/X_test.npy
+      hash: md5
+      md5: a2de8a6e77030244c527b49b3ee052bb
+      size: 16128
+    - path: data/processed/y_test.npy
+      hash: md5
+      md5: fa6854d3d9588601d98943847d90277f
+      size: 3328
+    - path: models/final_stacking_model.pkl
+      hash: md5
+      md5: 1d3507d64b96a94f21952892ee219bf3
+      size: 77503898
+    outs:
+    - path: metrics/evaluation.json
+      hash: md5
+      md5: 1af93c7293bba7c0368f5a737664526e
+      size: 165
+  test:
+    cmd: PYTHONPATH=. pytest tests/ --junitxml=metrics/test_report.xml
+    deps:
+    - path: models/final_stacking_model.pkl
+      hash: md5
+      md5: 1d3507d64b96a94f21952892ee219bf3
+      size: 77503898
+    outs:
+    - path: metrics/test_report.xml
+      hash: md5
+      md5: a105c8d5dba3724b37365801988afda1
+      size: 495

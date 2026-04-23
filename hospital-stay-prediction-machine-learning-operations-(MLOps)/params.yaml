@@ -1,0 +1,12 @@
+data:
+  sample_size: 2000
+  test_size: 0.2
+  random_state: 42
+
+preprocess:
+  pca_variance: 0.95
+
+models:
+  n_trials: 5
+  cv: 3
+  random_state: 42

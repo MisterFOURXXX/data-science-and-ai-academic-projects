@@ -1,0 +1,21 @@
+pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.5.0
+imbalanced-learn==0.12.3
+optuna
+lightgbm
+xgboost
+catboost
+mlflow
+dvc
+dagshub
+fastapi
+uvicorn
+joblib
+pyarrow
+pytest
+uvloop==0.19.0
+httptools==0.6.1
+skops==0.9.0
+
+#pip install --ignore-installed blinker  if blinker doesn't support mlflow
