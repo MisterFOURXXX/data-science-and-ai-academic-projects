@@ -1,0 +1,48 @@
+llmops-rag-pipeline/
+├── .gitignore                   # Git ignore rules
+├── dvc.yaml                     # DVC pipeline stages
+├── requirements.txt             # Python dependencies
+├── Dockerfile                   # Docker build instructions
+├── docker-compose.yml           # Docker Compose configuration
+├── setup_env.sh                 # CUDA and environment setup script
+├── config/
+│   ├── config.yaml              # Main configuration file
+│   └── params.yaml              # Hyperparameter search space (for logging)
+├── data/
+│   └── raw/                     # Raw CSV files (Questions.csv, Answers.csv, Tags.csv)
+├── models/                      # Trained model artifacts
+├── notebooks/                   # Jupyter notebooks for development
+├── src/                         # Source code
+│   ├── __init__.py
+│   ├── data/                    # Data processing modules
+│   │   ├── __init__.py
+│   │   ├── preprocessing.py
+│   │   └── dataset_builder.py
+│   ├── models/                  # Model training and evaluation
+│   │   ├── __init__.py
+│   │   ├── model_trainer.py
+│   │   └── model_evaluator.py
+│   ├── utils/                   # Utility functions and metrics
+│   │   ├── __init__.py
+│   │   ├── metrics.py
+│   │   └── helpers.py
+│   └── tracking/                # MLflow tracking utilities
+│       ├── __init__.py
+│       ├── mlflow_tracker.py
+│       └── optuna_optimizer.py
+├── tests/                       # Unit and integration tests
+│   ├── __init__.py
+│   ├── test_data.py
+│   ├── test_model.py
+│   └── test_api.py
+├── deployment/                  # Deployment scripts and Terraform configs
+│   ├── aws_deploy.py
+│   ├── inference_api.py
+│   └── terraform/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+└── scripts/                     # Pipeline execution scripts
+    ├── run_pipeline.py          # Main training pipeline
+    ├── run_optimization.py      # Hyperparameter logging (manual)
+    └── deploy.sh                # Deployment helper script

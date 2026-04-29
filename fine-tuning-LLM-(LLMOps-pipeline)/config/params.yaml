@@ -1,0 +1,32 @@
+# Hyperparameters for Optuna optimization
+search_space:
+  learning_rate:
+    type: loguniform
+    min: 0.000001
+    max: 0.0001
+  beta:
+    type: uniform
+    min: 0.01
+    max: 0.5
+  lora_r:
+    type: int
+    min: 4
+    max: 32
+  lora_alpha:
+    type: int
+    min: 8
+    max: 64
+  lora_dropout:
+    type: uniform
+    min: 0.0
+    max: 0.2
+  gradient_accumulation_steps:
+    type: categorical
+    choices: [4, 8, 16]
+  warmup_steps:
+    type: int
+    min: 5
+    max: 50
+  max_length:
+    type: categorical
+    choices: [512, 768, 1024]

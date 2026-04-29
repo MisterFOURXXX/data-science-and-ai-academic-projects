@@ -1,0 +1,96 @@
+project:
+  name: llmops-rag-pipeline
+  version: 1.0.0
+  seed: 42
+
+data:
+  raw_path: data/raw/
+  processed_path: data/processed/
+  prepared_path: data/prepared/
+  questions_file: Questions.csv
+  answers_file: Answers.csv
+  tags_file: Tags.csv
+  score_threshold: 5
+  sample_size: 100            #############
+
+model:
+  name: Qwen/Qwen3-0.6B
+  base_model: Qwen/Qwen3-0.6B
+  output_dir: models/qwen-dpo-final
+
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_compute_dtype: bfloat16
+  bnb_4bit_use_double_quant: true
+
+lora:
+  r: 16
+  lora_alpha: 32
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  lora_dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM
+
+training:
+  output_dir: models/qwen-dpo
+  num_train_epochs: 5         #########
+  per_device_train_batch_size: 2
+  per_device_eval_batch_size: 2
+  gradient_accumulation_steps: 8
+  learning_rate: 0.00005
+  lr_scheduler_type: cosine
+  warmup_steps: 10
+  logging_steps: 10
+  eval_strategy: steps
+  eval_steps: 500
+  save_strategy: steps
+  save_steps: 500
+  gradient_checkpointing: true
+  bf16: true
+  fp16: false
+  max_grad_norm: 1.0
+  max_length: 1024
+  precompute_ref_log_probs: true
+  loss_type: sigmoid
+  beta: 0.1
+  label_smoothing: 0.0
+  report_to: none
+  remove_unused_columns: true
+  load_best_model_at_end: true
+  metric_for_best_model: eval_loss
+  greater_is_better: false
+  save_total_limit: 3
+  early_stopping_patience: 3
+  early_stopping_threshold: 0.01
+
+evaluation:
+  max_new_tokens: 512
+  temperature: 0.7
+  top_p: 0.95
+  top_k: 50
+  repetition_penalty: 1.05
+
+mlflow:
+  tracking_uri: https://dagshub.com/fourapiwit/llmops-rag-pipeline.mlflow
+  experiment_name: llmops-rag-pipeline
+  registered_model_name: qwen-dpo-qlora
+
+optuna:
+  n_trials: 1
+  direction: maximize
+  study_name: dpo_hyperparameter_optimization
+  storage: sqlite:///optuna_study.db
+
+deployment:
+  aws_region: us-east-1
+  ecr_repository_name: llmops-rag-model
+  lambda_function_name: rag-inference
+  api_gateway_name: rag-api

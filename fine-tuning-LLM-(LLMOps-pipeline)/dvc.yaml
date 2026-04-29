@@ -1,0 +1,48 @@
+stages:
+  preprocess:
+    cmd: python scripts/run_preprocessing.py
+    deps:
+      - data/raw/Questions.csv
+      - data/raw/Answers.csv
+      - src/data/preprocessing.py
+      - src/data/dataset_builder.py
+      - config/config.yaml
+    outs:
+      - data/processed/train
+      - data/processed/validation
+      - data/processed/test
+    metrics:
+      - metrics/preprocessing_metrics.json
+
+  train:
+    cmd: python scripts/run_pipeline.py
+    deps:
+      - data/processed/train
+      - data/processed/validation
+      - src/models/model_trainer.py
+      - src/tracking/mlflow_tracker.py
+      - config/config.yaml
+    outs:
+      - models/qwen-dpo-final
+    metrics:
+      - metrics/training_metrics.json
+
+  evaluate:
+    cmd: python scripts/run_evaluation.py
+    deps:
+      - models/qwen-dpo-final
+      - data/processed/test
+      - src/models/model_evaluator.py
+      - src/utils/metrics.py
+    metrics:
+      - metrics/evaluation_metrics.json
+    plots:
+      - plots/metrics_comparison.png
+
+  optimize:
+    cmd: python scripts/run_optimization.py
+    deps:
+      - config/config.yaml
+      - config/params.yaml
+    metrics:
+      - metrics/optimization_results.json
