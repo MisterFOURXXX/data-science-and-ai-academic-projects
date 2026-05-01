@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  rag-api:
+    build: .
+    container_name: llmops-rag-api
+    ports:
+      - "8000:8000"
+      - "5000:5000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI}
+      - MLFLOW_TRACKING_USERNAME=${MLFLOW_TRACKING_USERNAME}
+      - MLFLOW_TRACKING_PASSWORD=${MLFLOW_TRACKING_PASSWORD}
+      - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./qwen-dpo-final:/app/qwen-dpo-final
+      - ./data:/app/data
+      - ./metrics:/app/metrics
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mlflow-server:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: mlflow-server
+    ports:
+      - "5001:5000"
+    environment:
+      - MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI}
+    volumes:
+      - ./mlflow:/mlflow
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri /mlflow
+
+  dvc-server:
+    image: iterativeai/dvc:latest
+    container_name: dvc-server
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: dvc metrics show
+
+networks:
+  default:
+    name: llmops-network

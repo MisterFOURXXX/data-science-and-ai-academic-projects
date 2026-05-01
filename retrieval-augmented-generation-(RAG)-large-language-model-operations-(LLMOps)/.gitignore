@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Large files - use DVC only
+chroma_db/
+qwen-dpo-final/
+data/
+metrics/
+*.pkl
+*.bin
+*.safetensors
+*.pt
+*.ckpt
+*.pth
+*.onnx
+*.pb
+*.tflite
+*.db
+*.sqlite
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# DVC
+.dvc/
+.dvc_tmp
+*.dvc.lock
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Distribution
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Environment
+.env
+.env.local
+
+# OS
+Thumbs.db
+Desktop.ini

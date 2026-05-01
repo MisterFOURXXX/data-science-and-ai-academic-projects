@@ -1,0 +1,9 @@
+# DVC metrics configuration
+metrics:
+  - metrics/load_data_metrics.json
+  - metrics/preprocess_metrics.json
+  - metrics/split_metrics.json
+  - metrics/vectorstore_metrics.json
+  - metrics/retrieval_metrics.json
+  - metrics/training_metrics.json
+  - metrics/rag_metrics.json

@@ -1,0 +1,74 @@
+data:
+  questions_path: "data/download/Questions.csv"
+  answers_path: "data/download/Answers.csv"
+  score_threshold: 5
+  top_n_questions: 50
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+
+vectorstore:
+  chunk_size: 512
+  chunk_overlap: 64
+  embedding_model: "BAAI/bge-small-en-v1.5"
+  embedding_batch_size: 32
+  chroma_persist_dir: "./chroma_db"
+  retrieval_k: 10
+
+model:
+  base_model_name: "Qwen/Qwen3-0.6B"
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.1
+  lora_target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]
+  quantization_4bit: true
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_use_double_quant: true
+
+training:
+  epochs: 1
+  batch_size: 4
+  gradient_accumulation_steps: 8
+  learning_rate: 5.0e-5
+  warmup_ratio: 0.1
+  max_seq_length: 512
+  gradient_checkpointing: true
+  save_steps: 500
+  eval_steps: 100
+  output_dir: "./qwen-dpo-final"
+  early_stopping_patience: 3
+  early_stopping_threshold: 0.01
+  dpo_beta: 0.1
+
+inference:
+  max_new_tokens: 512
+  temperature: 0.7
+  top_p: 0.95
+  top_k: 50
+  repetition_penalty: 1.05
+  batch_size: 8
+  num_workers: 4
+
+evaluation:
+  retrieval_k_values: [1, 3, 5, 10]
+  generation_models: ["bert-base-uncased"]
+  semantic_model: "all-MiniLM-L6-v2"
+  test_size: 50
+
+monitoring:
+  log_metrics: true
+  log_parameters: true
+  log_artifacts: true
+  mlflow_tracking_uri: "https://dagshub.com/fourapiwit/llmops-rag-pipeline.mlflow"
+  mlflow_experiment_name: "llmops-rag-pipeline-experiment"
+
+deployment:
+  aws_region: "us-east-1"
+  ecr_repository: "llmops-rag"
+  ecs_cluster: "llmops-cluster"
+  instance_type: "g4dn.xlarge"
+  min_capacity: 1
+  max_capacity: 3
+  target_cpu_utilization: 70
+  container_port: 8000

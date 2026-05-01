@@ -1,0 +1,11 @@
+pytest
+pytest-cov
+black
+isort
+flake8
+mypy
+pre-commit
+dvc
+dvc-s3
+mlflow
+dagshub

@@ -1,0 +1,109 @@
+stages:
+  load_data:
+    cmd: python -m src.data.load_data
+    deps:
+      - src/data/load_data.py
+      - data/download/Questions.csv
+      - data/download/Answers.csv
+    params:
+      - data.score_threshold
+      - data.top_n_questions
+    outs:
+      - data/raw/questions_filtered.pkl
+      - data/raw/answers_filtered.pkl
+    metrics:
+      - metrics/load_data_metrics.json:
+          cache: false
+
+  preprocess_data:
+    cmd: python -m src.data.preprocess
+    deps:
+      - src/data/preprocess.py
+      - data/raw/questions_filtered.pkl
+      - data/raw/answers_filtered.pkl
+    outs:
+      - data/processed/qa_pairs.pkl
+    metrics:
+      - metrics/preprocess_metrics.json:
+          cache: false
+
+  split_data:
+    cmd: python -m src.data.split_data
+    deps:
+      - src/data/split_data.py
+      - data/processed/qa_pairs.pkl
+    params:
+      - data.train_ratio
+      - data.val_ratio
+      - data.test_ratio
+    outs:
+      - data/splits/train.pkl
+      - data/splits/val.pkl
+      - data/splits/test.pkl
+    metrics:
+      - metrics/split_metrics.json:
+          cache: false
+
+  create_vectorstore:
+    cmd: python -m src.vectorstore.create_vectorstore
+    deps:
+      - src/vectorstore/create_vectorstore.py
+      - data/splits/train.pkl
+    params:
+      - vectorstore.chunk_size
+      - vectorstore.chunk_overlap
+      - vectorstore.embedding_model
+    outs:
+      - chroma_db/
+    metrics:
+      - metrics/vectorstore_metrics.json:
+          cache: false
+
+  evaluate_retrieval:
+    cmd: python -m src.vectorstore.retrieval_eval
+    deps:
+      - src/vectorstore/retrieval_eval.py
+      - chroma_db/
+      - data/splits/val.pkl
+    params:
+      - vectorstore.retrieval_k
+      - evaluation.retrieval_k_values
+    metrics:
+      - metrics/retrieval_metrics.json:
+          cache: false
+
+  fine_tune_model:
+    cmd: python -m src.model.fine_tune
+    deps:
+      - src/model/fine_tune.py
+      - data/splits/train.pkl
+      - data/splits/val.pkl
+    params:
+      - model.lora_r
+      - model.lora_alpha
+      - training.epochs
+      - training.batch_size
+      - training.learning_rate
+      - training.dpo_beta
+    outs:
+      - qwen-dpo-final/
+    metrics:
+      - metrics/training_metrics.json:
+          cache: false
+
+  evaluate_rag:
+    cmd: python -m src.evaluation.rag_evaluation
+    deps:
+      - src/evaluation/rag_evaluation.py
+      - src/rag/pipeline.py
+      - chroma_db/
+      - qwen-dpo-final/
+      - data/splits/test.pkl
+    params:
+      - inference.max_new_tokens
+      - inference.temperature
+      - inference.batch_size
+      - evaluation.test_size
+    metrics:
+      - metrics/rag_metrics.json:
+          cache: false
