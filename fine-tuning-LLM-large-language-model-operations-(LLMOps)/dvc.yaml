@@ -13,6 +13,14 @@ stages:
       - data/processed/test
     metrics:
       - metrics/preprocessing_metrics.json
+  
+  optimize:
+    cmd: python scripts/run_optimization.py
+    deps:
+      - config/config.yaml
+      - config/params.yaml
+    metrics:
+      - metrics/optimization_results.json
 
   train:
     cmd: python scripts/run_pipeline.py
@@ -38,11 +46,3 @@ stages:
       - metrics/evaluation_metrics.json
     plots:
       - plots/metrics_comparison.png
-
-  optimize:
-    cmd: python scripts/run_optimization.py
-    deps:
-      - config/config.yaml
-      - config/params.yaml
-    metrics:
-      - metrics/optimization_results.json

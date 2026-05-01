@@ -1,3 +1,7 @@
+metrics:
+- metrics/evaluation.json:
+    cache: false
+
 stages:
   prepare:
     cmd: python src/data/prepare.py
@@ -53,8 +57,9 @@ stages:
     - models/final_stacking_model.pkl
     - data/processed/X_test.npy
     - data/processed/y_test.npy
-    outs:
-    - metrics/evaluation.json
+    metrics:
+    - metrics/evaluation.json:
+        cache: false
 
   test:
     cmd: PYTHONPATH=. pytest tests/ --junitxml=metrics/test_report.xml

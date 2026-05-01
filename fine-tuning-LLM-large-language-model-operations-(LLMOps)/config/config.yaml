@@ -11,7 +11,7 @@ data:
   answers_file: Answers.csv
   tags_file: Tags.csv
   score_threshold: 5
-  sample_size: 100            #############
+  sample_size: 100            # Revise to cover all data
 
 model:
   name: Qwen/Qwen3-0.6B
@@ -41,7 +41,7 @@ lora:
 
 training:
   output_dir: models/qwen-dpo
-  num_train_epochs: 5         #########
+  num_train_epochs: 5         # Adjust based on convergence
   per_device_train_batch_size: 2
   per_device_eval_batch_size: 2
   gradient_accumulation_steps: 8

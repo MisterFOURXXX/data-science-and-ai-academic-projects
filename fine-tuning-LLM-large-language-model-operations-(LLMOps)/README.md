@@ -101,6 +101,48 @@ llmops-rag-pipeline/
 
 ### Detailed Setup Guide
 
+#### Initial Setup Checklist
+
+```bash
+# 1. Make scripts executable
+chmod +x setup_env.sh
+chmod +x scripts/*.py
+chmod +x deployment/*.py
+
+# 2. Run environment setup
+./setup_env.sh
+
+# 3. Create virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Create .env file from template
+cp .env.example .env
+# Edit .env with your credentials
+
+# 6. Initialize DVC
+dvc init
+
+# 7. Configure DVC remote
+source .env
+dvc remote add origin https://dagshub.com/${DAGSHUB_USER}/${DAGSHUB_REPO}.dvc
+dvc remote modify origin --local auth basic
+dvc remote modify origin --local user ${DAGSHUB_USER}
+dvc remote modify origin --local password ${DAGSHUB_TOKEN}
+
+# 8. Run preprocessing
+python scripts/run_preprocessing.py
+
+# 9. Run hyperparameter logging
+python scripts/run_optimization.py
+
+# 10. Run training pipeline
+python scripts/run_pipeline.py
+```
+
 #### Model Experiment
 
 **Step 1: Environment Setup**

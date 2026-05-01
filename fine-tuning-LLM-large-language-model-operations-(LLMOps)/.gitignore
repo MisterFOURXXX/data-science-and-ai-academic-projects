@@ -1,0 +1,85 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# MLflow - keep tracking but exclude local db
+mlruns/
+mlflow.db
+
+# DVC - keep remote config but exclude cache
+.dvc/cache
+.dvc/tmp
+.dvc/updater
+.dvc/updater.lock
+dvc.lock
+
+# Models - but keep directory structure
+models/*.pkl
+models/*.pt
+models/*.pth
+models/*.bin
+!models/.gitkeep
+
+# Data - keep raw and processed
+data/raw/*.csv
+data/raw/*.zip
+data/processed/*.parquet
+data/processed/*.npy
+data/prepared/
+!data/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.vscode/
+.idea/
+
+# AWS
+.aws/
+*.pem
+
+# Docker
+*.tar
+*.tar.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Metrics directory but keep JSON files
+metrics/*.png
+!metrics/*.json
+
+# Plots
+plots/
+
+# Keep directory structure
+!.gitkeep

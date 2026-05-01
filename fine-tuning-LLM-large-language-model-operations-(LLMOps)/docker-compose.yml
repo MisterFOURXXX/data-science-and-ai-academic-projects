@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./models:/app/qwen-dpo-final
+      - ./models/qwen-dpo-final:/app/qwen-dpo-final
       - ./logs:/app/logs
     environment:
       - MODEL_PATH=/app/qwen-dpo-final
@@ -23,6 +23,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: unless-stopped
   
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.18.0
@@ -30,13 +31,7 @@ services:
       - "5000:5000"
     volumes:
       - ./mlruns:/mlruns
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
     command: mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlruns/mlflow.db --default-artifact-root ./mlruns
-  
-  optuna:
-    image: python:3.11
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: python scripts/run_optimization.py
-    depends_on:
-      - mlflow
+    restart: unless-stopped

@@ -29,7 +29,7 @@ def main():
     config, params = load_config()
     
     # Set up MLflow tracking
-    mlflow.set_tracking_uri("file:./mlruns")
+    mlflow.set_tracking_uri(config["mlflow"]["tracking_uri"])
     mlflow.set_experiment("hyperparameter_logging")
     
     with mlflow.start_run(run_name="parameter_logging_run", tags={"stage": "logging", "timestamp": str(datetime.now())}):
@@ -50,7 +50,7 @@ def main():
         search_space = params.get("search_space", {})
         for param_name, param_config in search_space.items():
             param_type = param_config.get("type", "unknown")
-            if param_type == "loguniform" or param_type == "uniform":
+            if param_type in ["loguniform", "uniform"]:
                 mlflow.log_param(f"search_space.{param_name}.min", param_config.get("min"))
                 mlflow.log_param(f"search_space.{param_name}.max", param_config.get("max"))
                 mlflow.log_param(f"search_space.{param_name}.type", param_type)
@@ -61,11 +61,11 @@ def main():
                 mlflow.log_param(f"search_space.{param_name}.type", param_type)
                 print(f"  {param_name}: min={param_config.get('min')}, max={param_config.get('max')}, type={param_type}")
             elif param_type == "categorical":
-                mlflow.log_param(f"search_space.{param_name}.choices", param_config.get("choices"))
+                mlflow.log_param(f"search_space.{param_name}.choices", str(param_config.get("choices")))
                 mlflow.log_param(f"search_space.{param_name}.type", param_type)
                 print(f"  {param_name}: choices={param_config.get('choices')}, type={param_type}")
         
-        # Log current training parameters (from config)
+        # Log current training parameters
         print("\n[Logging Current Training Parameters]")
         current_params = {
             "learning_rate": config["training"]["learning_rate"],
@@ -101,11 +101,12 @@ def main():
         # Log as artifact
         mlflow.log_artifact("metrics/optimization_results.json")
         
+        print("\nMLflow Run ID:", mlflow.active_run().info.run_id)
+        print("View logged parameters at:", config["mlflow"]["tracking_uri"])
+        
         print("\n" + "="*60)
         print("PARAMETER LOGGING COMPLETED")
         print("="*60)
-        print("\nTo view logged parameters, run:")
-        print("  mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --port 5000")
 
 if __name__ == "__main__":
     main()

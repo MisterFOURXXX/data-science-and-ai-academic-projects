@@ -1,11 +1,19 @@
 import mlflow
 from mlflow.tracking import MlflowClient
+import dagshub
 from typing import Dict, Any
 import json
 import os
 
 class MLflowTracker:
     def __init__(self, tracking_uri: str, experiment_name: str, repo_owner: str = None, repo_name: str = None):
+        # Initialize DagsHub if credentials are provided
+        if repo_owner and repo_name:
+            try:
+                dagshub.init(repo_owner=repo_owner, repo_name=repo_name, mlflow=True)
+            except Exception as e:
+                print(f"DagsHub initialization warning: {e}")
+        
         mlflow.set_tracking_uri(tracking_uri)
         self.experiment_name = experiment_name
         
@@ -30,10 +38,12 @@ class MLflowTracker:
                 mlflow.log_metric(key, value, step=step)
     
     def log_artifacts(self, local_path: str, artifact_path: str = None):
-        mlflow.log_artifacts(local_path, artifact_path)
+        if os.path.exists(local_path):
+            mlflow.log_artifacts(local_path, artifact_path)
     
     def log_model(self, model_path: str, model_name: str):
-        mlflow.log_artifacts(model_path, artifact_path=model_name)
+        if os.path.exists(model_path):
+            mlflow.log_artifacts(model_path, artifact_path=model_name)
     
     def end_run(self):
         mlflow.end_run()

@@ -4,9 +4,8 @@ from typing import List, Dict, Optional
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
-import boto3
-import json
 import os
+import time
 
 app = FastAPI(title="RAG LLM Inference API", version="1.0.0")
 
@@ -35,13 +34,18 @@ class ModelLoader:
     
     def load_model(self, model_path: str):
         if self._model is None:
+            print(f"Loading model from {model_path}...")
             base_model_name = "Qwen/Qwen3-0.6B"
+            
+            # Check if CUDA is available
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            print(f"Using device: {device}")
             
             base_model = AutoModelForCausalLM.from_pretrained(
                 base_model_name,
-                device_map="auto",
+                device_map=device,
                 trust_remote_code=True,
-                torch_dtype=torch.bfloat16
+                torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
             )
             
             self._model = PeftModel.from_pretrained(base_model, model_path)
@@ -50,6 +54,9 @@ class ModelLoader:
             if self._tokenizer.pad_token is None:
                 self._tokenizer.pad_token = self._tokenizer.eos_token
             self._tokenizer.padding_side = "left"
+            
+            self._model.eval()
+            print("Model loaded successfully")
         
         return self._model, self._tokenizer
 
@@ -57,14 +64,12 @@ model_loader = ModelLoader()
 
 @app.on_event("startup")
 async def startup_event():
-    model_path = os.getenv("MODEL_PATH", "./qwen-dpo-final")
+    model_path = os.getenv("MODEL_PATH", "./models/qwen-dpo-final")
     model_loader.load_model(model_path)
 
 @app.post("/generate", response_model=InferenceResponse)
 async def generate(request: InferenceRequest):
-    import time
-    
-    model, tokenizer = model_loader.load_model(os.getenv("MODEL_PATH", "./qwen-dpo-final"))
+    model, tokenizer = model_loader.load_model(os.getenv("MODEL_PATH", "./models/qwen-dpo-final"))
     
     enhanced_prompt = f"""<thinking>
 Let me solve this coding problem step by step:
@@ -74,10 +79,14 @@ Let me solve this coding problem step by step:
 2. Solution Approach:
    - Choose optimal solution based on constraints
 </thinking>
+
 <solution>
 ```python
 # Implementation
+def solution():
+    pass
 </solution>
+
 <explanation>
 Complexity Analysis:
 - Time Complexity: O(n)
