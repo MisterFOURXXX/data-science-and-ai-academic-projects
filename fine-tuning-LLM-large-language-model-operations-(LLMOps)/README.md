@@ -1,30 +1,70 @@
-### Fine Tuning LLM (LLMOps Pipeline)
+# Fine Tuning LLM (LLMOps Pipeline)
 
 A production-ready LLMOps pipeline for fine-tuning Qwen3-0.6B with Direct Preference Optimization (DPO) and deploying to AWS. This pipeline includes experiment tracking with MLflow, data version control with DVC, containerization with Docker, and comprehensive model evaluation.
 
-**Table of Contents**
+This project is a **reproducible LLMOps pipeline** for fine-tuning **Qwen3-0.6B** using **Direct Preference Optimization (DPO)** with **QLoRA**. It is designed for research and educational purposes, with optional deployment to AWS. The pipeline covers the full lifecycle of a small language model experiment:
 
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
-- [Detailed Setup Guide](#detailed-setup-guide)
-  - [Step 1: Environment Setup](#step-1-environment-setup)
-  - [Step 2: Install Dependencies](#step-2-install-dependencies)
-  - [Step 3: Configure DagsHub and MLflow](#step-3-configure-dagshub-and-mlflow)
-  - [Step 4: Prepare Data](#step-4-prepare-data)
-  - [Step 5: Run Preprocessing](#step-5-run-preprocessing)
-  - [Step 6: Log Hyperparameters (Manual)](#step-6-log-hyperparameters-manual)
-  - [Step 7: Train Model](#step-7-train-model)
-  - [Step 8: Evaluate Model](#step-8-evaluate-model)
-  - [Step 9: View MLflow Dashboard](#step-9-view-mlflow-dashboard)
-- [Docker Deployment](#docker-deployment)
-- [AWS Deployment](#aws-deployment)
-- [Testing](#testing)
-- [Environment Variables](#environment-variables)
-- [Monitoring and Logging](#monitoring-and-logging)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
+1. Raw data ingestion and preprocessing.
+2. DPO preference-pair construction.
+3. Efficient 4-bit fine-tuning with LoRA adapters.
+4. Experiment tracking with MLflow and DagsHub.
+5. Data and model versioning with DVC.
+6. Multi-metric evaluation.
+7. Dockerized inference.
+8. Optional AWS deployment.
+
+Large language models are expensive to fine-tune and deploy. This project investigates whether **parameter-efficient preference alignment** can improve a small code-oriented model while remaining reproducible and accessible. It also demonstrates how LLMOps practices can make small-model research more transparent, comparable, and reusable.
+
+---
+
+## Methodology
+
+**1. Design**
+
+This project follows an **experimental, reproducible research design**. The central goal is to evaluate whether DPO with QLoRA can improve preference alignment in a small code-oriented language model. The study compares the fine-tuned model against the base model using automatic metrics and code-quality proxies.
+
+**Core Components**
+
+| Component | Purpose |
+|---|---|
+| **Data Pipeline** | Cleans Stack Overflow data and builds DPO pairs. |
+| **DPO + QLoRA Training** | Fine-tunes Qwen3-0.6B with 4-bit quantization and LoRA. |
+| **MLflow + DagsHub** | Tracks parameters, metrics, and artifacts. |
+| **DVC** | Versions datasets and model artifacts. |
+| **Evaluation Suite** | Measures BLEU, ROUGE, BERTScore, perplexity, and code quality. |
+| **Docker Inference API** | Serves the fine-tuned model via FastAPI. |
+| **AWS Deployment** | Optional ECR, Lambda/API Gateway, and Terraform setup. |
+| **Tests** | Pytest coverage for data, model, and API behavior. |
+
+**High-Level Workflow**
+
+```text
+Stack Overflow CSVs
+        |
+        V
+DVC-tracked raw data
+        |
+        V
+Preprocessing → DPO preference pairs → train/val/test splits
+        |
+        V
+Qwen3-0.6B + 4-bit quantization + LoRA
+        |
+        V
+DPO training
+        |
+        V
+MLflow tracking + DVC artifacts
+        |
+        V
+Evaluation (BLEU, ROUGE, BERTScore, perplexity, code metrics)
+        |
+        V
+Dockerized FastAPI inference
+        |
+        V
+Optional AWS deployment
+```
 
 **Features**
 
@@ -38,6 +78,92 @@ A production-ready LLMOps pipeline for fine-tuning Qwen3-0.6B with Direct Prefer
 - **AWS Deployment**: ECR, Lambda, API Gateway with Terraform
 - **Integration Tests**: Pytest with coverage reporting
 
+
+**Hypotheses**
+
+- **H1:** DPO + QLoRA improves preference accuracy and reward margins over the base model.
+- **H2:** 4-bit quantization reduces memory use with minimal degradation in BLEU, ROUGE, and BERTScore.
+- **H3:** Code-quality metrics correlate better with perceived usefulness than BLEU alone.
+- **H4:** DVC + MLflow enable reliable reproduction across machines.
+
+**Data Collection and Preprocessing**
+
+- **Source:** Stack Overflow `stacksample` dataset from Kaggle.
+- **Files:** `Questions.csv`, `Answers.csv`, `Tags.csv`.
+- **Cleaning:** Remove HTML tags from question and answer bodies.
+- **Filtering:** Keep questions with score > 5.
+- **Preference Pairs:**
+  - **Chosen:** Highest-scored answer.
+  - **Rejected:** Lowest-scored answer.
+- **Splits:** 80% train, 10% validation, 10% test.
+- **Format:** Convert to conversational format suitable for DPO training.
+- **Versioning:** Track raw and processed data with DVC.
+
+**Model and Training**
+
+- **Base Model:** Qwen3-0.6B.
+- **Quantization:** 4-bit QLoRA.
+- **Adapters:** LoRA applied to selected modules.
+- **Objective:** DPO loss.
+- **Key Hyperparameters:**
+  - `num_train_epochs`: 30
+  - `learning_rate`: 5e-5
+  - `per_device_train_batch_size`: 2
+  - `gradient_accumulation_steps`: 8
+  - `beta`: 0.1
+  - `max_length`: 1024
+- **Hardware:** NVIDIA GPU with at least 8GB VRAM.
+- **Monitoring:** GPU usage via `nvidia-smi`; training metrics via MLflow.
+
+**Experiment Tracking and Versioning**
+
+- **MLflow:** Logs parameters, metrics, and artifacts for every run.
+- **DagsHub:** Remote MLflow tracking server.
+- **DVC:** Versions datasets and model artifacts.
+- **Configuration:** All hyperparameters stored in `config/config.yaml` and `config/params.yaml`.
+- **Manual Logging:** Hyperparameters are logged without Optuna optimization.
+
+**Evaluation**
+
+Evaluation is performed on the held-out test set using:
+
+- **Text Similarity:** BLEU, ROUGE-1/2/L, BERTScore F1.
+- **Language Modeling:** Perplexity.
+- **Code Quality Proxies:**
+  - Presence of functions, imports, and comments.
+  - Average function count and line count.
+  - Programming language detection (Python, JavaScript, Java, C++, Go, Rust, SQL).
+- **Preference Metrics:** Rewards/accuracies and rewards/margins from training.
+
+Metrics are saved to `metrics/evaluation_metrics.json` and logged to MLflow.
+
+**Experimental Conditions and Ablations**
+
+- **Baseline:** Zero-shot Qwen3-0.6B.
+- **Main Condition:** DPO + QLoRA.
+- **Optional Baseline:** Supervised fine-tuning (SFT).
+- **Ablations:**
+  - LoRA rank: 4, 8, 16, 32.
+  - DPO beta: 0.01, 0.1, 0.5.
+  - Max sequence length: 512, 1024.
+- **Replication:** Run multiple seeds where compute permits and report mean ± standard deviation.
+
+**Deployment as a Research Artifact**
+
+- **Inference API:** FastAPI service with `/health` and `/generate` endpoints.
+- **Containerization:** Docker and Docker Compose.
+- **Optional Cloud:** AWS ECR, Lambda, API Gateway, and Terraform.
+- **Purpose:** Demonstration, user studies, and external review.
+
+**Reproducibility Plan**
+
+- All configurations stored in version-controlled YAML files.
+- Raw and processed data tracked with DVC.
+- Every run logged to MLflow with parameters, metrics, and artifacts.
+- Docker image provided for consistent inference.
+- Tests included for data processing, model loading, and API behavior.
+- Environment variables documented in `.env.example`.
+
 **Hardware Requirements**
 
 - **Hardware**: NVIDIA GPU with at least 8GB VRAM (RTX A4000 recommended)
@@ -47,8 +173,24 @@ A production-ready LLMOps pipeline for fine-tuning Qwen3-0.6B with Direct Prefer
 - **AWS CLI**: Configured with appropriate credentials (for AWS deployment)
 - **DagsHub Account**: For experiment tracking and DVC remote storage
 
-### Project Structure
-```
+**Ethical Considerations**
+
+- Stack Overflow data is used under its original license; users must verify terms.
+- Generated code may contain insecure, biased, or outdated patterns.
+- Automatic metrics are proxies and should not replace human evaluation.
+- The model should not be deployed in high-stakes settings without further validation.
+
+**Limitations**
+
+- BLEU, ROUGE, and BERTScore may not fully reflect code correctness.
+- 4-bit quantization may affect generation quality.
+- Hyperparameters are manually logged rather than optimized.
+- AWS deployment is for research demonstrations, not production workloads.
+- Stack Overflow data may contain biases and outdated solutions.
+
+**Project Structure**
+
+```text
 llmops-rag-pipeline/
 ├── .gitignore                   # Git ignore rules
 ├── dvc.yaml                     # DVC pipeline stages
@@ -99,9 +241,11 @@ llmops-rag-pipeline/
     └── deploy.sh                # Deployment helper script
 ```
 
-### Detailed Setup Guide
+---
 
-#### Initial Setup Checklist
+## Get Start - Step-By-Step
+
+### Initial Setup Checklist
 
 ```bash
 # 1. Make scripts executable
@@ -143,7 +287,7 @@ python scripts/run_optimization.py
 python scripts/run_pipeline.py
 ```
 
-#### Model Experiment
+### Model Experiment
 
 **Step 1: Environment Setup**
 
@@ -304,7 +448,7 @@ python scripts/run_preprocessing.py
 6. Saves processed datasets to `data/processed/`
 
 **Expected output:**
-```
+```text
 Building datasets from CSV files...
 Loading questions from data/raw/Questions.csv
 Loading answers from data/raw/Answers.csv
@@ -342,7 +486,7 @@ python scripts/run_optimization.py
 6. **Does NOT perform actual optimization or model training**
 
 **Expected output:**
-```
+```text
 ============================================================
 HYPERPARAMETER LOGGING (No Optimization)
 ============================================================
@@ -406,7 +550,7 @@ watch -n 1 nvidia-smi
 mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --port 5000
 ```
 
-**Step 8: Evaluate Model((
+**Step 8: Evaluate Model**
 
 ```bash
 # Run evaluation
@@ -427,7 +571,7 @@ python scripts/run_evaluation.py
 8. Creates a metrics comparison plot
 
 **Expected output:**
-```
+```text
 ============================================================
 EVALUATION RESULTS
 ============================================================
@@ -474,7 +618,7 @@ mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --port 5000
 - **Search**: Filter runs by parameters or metrics
 - **Compare**: Compare multiple runs side-by-side
 
-### Docker Deployment
+## Docker Deployment
 
 **Build and Run Locally**
 
@@ -517,7 +661,7 @@ docker-compose down
 docker-compose down -v
 ```
 
-### AWS Deployment
+## AWS Deployment
 
 **Setup AWS Requirements**
 
@@ -571,11 +715,11 @@ terraform destroy
 **API Gateway Endpoint**
 
 After deployment, you'll receive an API Gateway URL:
-```
+```text
 https://{api-id}.execute-api.{region}.amazonaws.com/prod/generate
 ```
 
-### Testing
+## Testing
 
 **Run All Tests**
 
@@ -611,7 +755,7 @@ print(clean_html('<p>Hello <b>World</b></p>'))
 "
 ```
 
-### Environment Variables
+## Environment Variables
 
 Create a `.env` file for persistent configuration:
 
@@ -645,7 +789,7 @@ source .env
 # Or use python-dotenv
 ```
 
-### Monitoring and Logging
+## Monitoring and Logging
 
 **MLflow Metrics Tracked**
 
@@ -696,7 +840,7 @@ dvc metrics show
 dvc plots show
 ```
 
-### Troubleshooting
+## Troubleshooting
 
 **DagsHub Authentication Issues**
 
@@ -749,5 +893,11 @@ file data/raw/Questions.csv
 # In config/config.yaml, set:
 sample_size: 100  # instead of 1000
 ```
+
+## Contributing
+
+Contributions are welcome for research reproducibility, evaluation metrics, ablation support, and documentation. Please open an issue or pull request with a clear description, and ensure tests pass before submitting.
+
+---
 
 **Note**: This pipeline is designed for educational and research purposes. For production use, ensure proper security, monitoring, and scaling configurations.
