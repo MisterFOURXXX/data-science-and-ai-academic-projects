@@ -1,5 +1,77 @@
 # Hospital Stay Prediction - Optimized Production Pipeline
 
+## Table of Contents
+
+- Introduction
+- Methodology
+  - Design
+  - Core Components
+  - High-Level Workflow
+  - Hypotheses
+  - Data Collection and Preprocessing
+  - Model and Training
+  - Experiment Tracking and Versioning
+  - Evaluation
+  - Experimental Conditions and Ablations
+  - Deployment as a Production Artifact
+  - Reproducibility Plan
+  - Hardware Requirements
+  - Ethical Considerations
+  - Limitations
+  - Features
+  - Project Structure
+- Get Started - Step-By-Step
+  - Initial Setup Checklist
+  - Model Experiment
+    - Step 1: Environment Setup
+    - Step 2: Configure DagsHub and MLflow
+    - Step 3: Prepare Data
+    - Step 4: Configure Pipeline Parameters
+    - Step 5: Run Data Preparation
+    - Step 6: Run Preprocessing
+    - Step 7: Run Hyperparameter Tuning
+    - Step 8: Train Final Stacked Ensemble
+    - Step 9: Evaluate Model
+    - Step 10: Run Tests
+    - Step 11: View MLflow Dashboard
+- Docker Deployment
+  - Build and Run Locally
+  - Test the API
+  - Docker Commands Reference
+  - Stop Containers
+- AWS Deployment
+  - Setup AWS Requirements
+  - Deploy with AWS CLI
+    - Step 1: Create ECR Repository
+    - Step 2: Authenticate Docker to ECR
+    - Step 3: Tag and Push Docker Image
+    - Step 4: Deploy to ECS Fargate
+    - Step 5: Access Deployed API
+    - Step 6: Set Up Auto-scaling (Optional)
+- API Usage
+  - Swagger Documentation
+  - Prediction Endpoint
+  - Python Client Example
+- Testing
+  - Run All Tests
+  - Run Specific Tests
+  - Test with Sample Data
+- Environment Variables
+- Monitoring and Logging
+  - MLflow Metrics Tracked
+  - View MLflow Dashboard
+  - View DVC Pipeline Status
+- Troubleshooting
+  - DagsHub Authentication Issues
+  - MLflow Permission Issues
+  - Out of Memory (OOM)
+  - Data Loading Issues
+  - Docker Issues
+  - ECS Task Fails to Start
+- Contributing
+
+## Introduction
+
 A production-ready MLOps pipeline for predicting patient hospital stay duration using stacked ensemble learning with LightGBM, XGBoost, and CatBoost. This pipeline includes experiment tracking with MLflow on DagsHub, hyperparameter optimization with Optuna, data version control with DVC, containerization with Docker, and production deployment on AWS ECS.
 
 This project is a **reproducible MLOps pipeline** for predicting **hospital stay categories** using a **stacked ensemble of gradient boosting models** (LightGBM, XGBoost, CatBoost). It is designed for production deployment and educational purposes, with containerized inference on AWS ECS. The pipeline covers the full lifecycle of a machine learning experiment:
