@@ -1,5 +1,89 @@
 # RAG Pipeline (LLMOps)
 
+## Table of Contents
+
+- Introduction
+- Methodology
+  - Design
+  - Core Components
+  - High-Level Workflow
+  - Hypotheses
+  - Data Collection and Preprocessing
+  - Vector Database and Retrieval
+  - Model and Training
+  - Experiment Tracking and Versioning
+  - Evaluation
+  - Experimental Conditions and Ablations
+  - Deployment as a Production Artifact
+  - Reproducibility Plan
+  - Hardware Requirements
+  - Ethical Considerations
+  - Limitations
+- Features
+- Project Structure
+- Get Started - Step-By-Step
+  - Initial Setup Checklist
+  - Model Experiment
+    - Step 1: Environment Setup
+    - Step 2: Install Dependencies
+    - Step 3: Configure DagsHub and MLflow
+    - Step 4: Prepare Data
+    - Step 5: Run Data Pipeline
+    - Step 6: Build Vector Store
+    - Step 7: Fine-Tune Model
+    - Step 8: Evaluate RAG Pipeline
+    - Step 9: View MLflow Dashboard
+    - Step 10: DVC Pipeline Commands
+- Docker Deployment
+  - Build and Run Locally
+  - Docker Compose Services
+  - Docker Environment Variables
+  - Test the API
+  - Docker Commands Reference
+- AWS Deployment
+  - Setup AWS Requirements
+  - Deploy with Shell Script
+  - Deploy with Python Script
+  - Monitor Deployment
+  - AWS Architecture
+  - Required IAM Roles
+  - Production Recommendation
+- API Usage
+  - Base URL
+  - Endpoints
+    - Health Check
+    - Single Query
+    - Batch Query
+  - Python Client Example
+- Testing
+  - Run All Tests
+  - Test Categories
+  - Generate Coverage Report
+- Environment Variables
+- Monitoring and Logging
+  - MLflow Metrics Tracked
+    - Data Quality Metrics
+    - Vectorstore Metrics
+    - Retrieval Metrics
+    - Training Metrics
+    - Generation Metrics
+    - Performance Metrics
+  - View MLflow Dashboard
+  - View DVC Pipeline Status
+  - Production Monitoring Recommendations
+- Troubleshooting
+  - Common Issues and Solutions
+  - Debug Mode
+  - DagsHub Authentication Issues
+  - MLflow Permission Issues
+  - Out of Memory (OOM)
+  - Docker Issues
+  - AWS ECS Task Fails to Start
+- Contributing
+- License
+
+## Introduction
+
 A production-ready Retrieval-Augmented Generation (RAG) pipeline for coding question answering, featuring comprehensive experiment tracking, model fine-tuning, and cloud deployment. This pipeline includes experiment tracking with MLflow on DagsHub, data version control with DVC, containerization with Docker, and deployment on AWS ECS with GPU support.
 
 This project is a **reproducible LLMOps pipeline** for building a **coding assistant RAG system** using **ChromaDB** for retrieval and a **fine-tuned Qwen3-0.6B** model (via QLoRA + DPO) for generation. It is designed for production deployment and educational purposes, with containerized inference on AWS ECS. The pipeline covers the full lifecycle of a RAG-based language model service:
