@@ -1,40 +1,42 @@
-# Fine Tuning LLM (LLMOps Pipeline)
+# Fine-Tuning LLM (LLMOps Pipeline) - Production ML Engineering Pipeline
 
-A production-ready LLMOps pipeline for fine-tuning Qwen3-0.6B with Direct Preference Optimization (DPO) and deploying to AWS. This pipeline includes experiment tracking with MLflow, data version control with DVC, containerization with Docker, and comprehensive model evaluation.
+A production-ready LLMOps pipeline for fine-tuning **Qwen3-0.6B** using **Direct Preference Optimization (DPO)** with **QLoRA**, and deploying a containerized inference service to AWS. This pipeline includes experiment tracking with MLflow on DagsHub, data version control with DVC, containerization with Docker, and comprehensive model evaluation for code-generation quality.
 
-This project is a **reproducible LLMOps pipeline** for fine-tuning **Qwen3-0.6B** using **Direct Preference Optimization (DPO)** with **QLoRA**. It is designed for research and educational purposes, with optional deployment to AWS. The pipeline covers the full lifecycle of a small language model experiment:
+This project is a **production-oriented LLMOps pipeline** for fine-tuning **Qwen3-0.6B** using **DPO + QLoRA**. It is designed for ML engineers who need to take a small language model from raw data through training, evaluation, packaging, and deployment. The pipeline covers the full lifecycle of a production language model service:
 
 1. Raw data ingestion and preprocessing.
 2. DPO preference-pair construction.
 3. Efficient 4-bit fine-tuning with LoRA adapters.
-4. Experiment tracking with MLflow and DagsHub.
+4. Experiment tracking with MLflow on DagsHub.
 5. Data and model versioning with DVC.
-6. Multi-metric evaluation.
-7. Dockerized inference.
-8. Optional AWS deployment.
+6. Multi-metric evaluation with code-quality proxies.
+7. Dockerized FastAPI inference.
+8. AWS deployment with ECR, Lambda/API Gateway, and Terraform.
+9. Automated tests and monitoring.
 
-Large language models are expensive to fine-tune and deploy. This project investigates whether **parameter-efficient preference alignment** can improve a small code-oriented model while remaining reproducible and accessible. It also demonstrates how LLMOps practices can make small-model research more transparent, comparable, and reusable.
+Fine-tuning large language models is expensive and operationally complex. This project demonstrates how **parameter-efficient fine-tuning** and **MLOps best practices** can make small-model adaptation reproducible, observable, and deployable at production quality. It shows how an ML engineer can build a defensible pipeline for aligning a code-oriented model while keeping costs, latency, and reliability under control.
 
 ---
 
 ## Methodology
 
-**1. Design**
+**Design**
 
-This project follows an **experimental, reproducible research design**. The central goal is to evaluate whether DPO with QLoRA can improve preference alignment in a small code-oriented language model. The study compares the fine-tuned model against the base model using automatic metrics and code-quality proxies.
+This project follows a **production-grade, reproducible ML engineering design**. The central goal is to fine-tune Qwen3-0.6B with DPO + QLoRA, evaluate it against the base model, and deploy it as a low-latency inference service. The pipeline is designed so that every stage—from raw data to served endpoint—is versioned, tracked, and reproducible.
 
 **Core Components**
 
 | Component | Purpose |
 |---|---|
-| **Data Pipeline** | Cleans Stack Overflow data and builds DPO pairs. |
-| **DPO + QLoRA Training** | Fine-tunes Qwen3-0.6B with 4-bit quantization and LoRA. |
-| **MLflow + DagsHub** | Tracks parameters, metrics, and artifacts. |
-| **DVC** | Versions datasets and model artifacts. |
-| **Evaluation Suite** | Measures BLEU, ROUGE, BERTScore, perplexity, and code quality. |
-| **Docker Inference API** | Serves the fine-tuned model via FastAPI. |
-| **AWS Deployment** | Optional ECR, Lambda/API Gateway, and Terraform setup. |
+| **Data Pipeline** | Cleans Stack Overflow data and builds DPO preference pairs. |
+| **DPO + QLoRA Training** | Fine-tunes Qwen3-0.6B with 4-bit quantization and LoRA adapters. |
+| **MLflow + DagsHub** | Tracks parameters, metrics, and artifacts for every run. |
+| **DVC** | Versions datasets, processed artifacts, and trained models. |
+| **Evaluation Suite** | Measures BLEU, ROUGE, BERTScore, perplexity, and code-quality proxies. |
+| **Docker Inference API** | Serves the fine-tuned model via FastAPI with `/health` and `/generate`. |
+| **AWS Deployment** | ECR, Lambda/API Gateway, and Terraform for infrastructure-as-code. |
 | **Tests** | Pytest coverage for data, model, and API behavior. |
+| **Monitoring** | MLflow metrics, DVC pipeline status, and API health checks. |
 
 **High-Level Workflow**
 
@@ -63,28 +65,15 @@ Evaluation (BLEU, ROUGE, BERTScore, perplexity, code metrics)
 Dockerized FastAPI inference
         |
         V
-Optional AWS deployment
+AWS ECR + Lambda/API Gateway (Terraform)
 ```
-
-**Features**
-
-- **DPO Fine-tuning with QLoRA**: Efficient 4-bit quantization + LoRA adapters
-- **Experiment Tracking**: MLflow with DagsHub integration
-- **Data Version Control**: DVC for dataset versioning
-- **Hyperparameter Logging**: Manual parameter logging (no Optuna optimization)
-- **Comprehensive Metrics**: BLEU, ROUGE, BERTScore, perplexity, code quality metrics
-- **Multi-language Support**: Python, JavaScript, Java, C++, Go, Rust, SQL detection
-- **Docker Containerization**: Easy deployment with Docker Compose
-- **AWS Deployment**: ECR, Lambda, API Gateway with Terraform
-- **Integration Tests**: Pytest with coverage reporting
-
 
 **Hypotheses**
 
 - **H1:** DPO + QLoRA improves preference accuracy and reward margins over the base model.
-- **H2:** 4-bit quantization reduces memory use with minimal degradation in BLEU, ROUGE, and BERTScore.
-- **H3:** Code-quality metrics correlate better with perceived usefulness than BLEU alone.
-- **H4:** DVC + MLflow enable reliable reproduction across machines.
+- **H2:** 4-bit quantization reduces GPU memory use with minimal degradation in BLEU, ROUGE, and BERTScore.
+- **H3:** Code-quality proxies (functions, imports, comments, line count) correlate with perceived usefulness better than BLEU alone.
+- **H4:** DVC + MLflow enable reliable reproduction of training and evaluation across machines.
 
 **Data Collection and Preprocessing**
 
@@ -104,24 +93,24 @@ Optional AWS deployment
 - **Base Model:** Qwen3-0.6B.
 - **Quantization:** 4-bit QLoRA.
 - **Adapters:** LoRA applied to selected modules.
-- **Objective:** DPO loss.
+- **Objective:** DPO loss for preference alignment.
 - **Key Hyperparameters:**
   - `num_train_epochs`: 30
   - `learning_rate`: 5e-5
   - `per_device_train_batch_size`: 2
   - `gradient_accumulation_steps`: 8
-  - `beta`: 0.1
+  - `beta`: 0.1 (DPO temperature)
   - `max_length`: 1024
-- **Hardware:** NVIDIA GPU with at least 8GB VRAM.
+- **Hardware:** NVIDIA GPU with at least 8GB VRAM (RTX A4000 recommended).
 - **Monitoring:** GPU usage via `nvidia-smi`; training metrics via MLflow.
 
 **Experiment Tracking and Versioning**
 
-- **MLflow:** Logs parameters, metrics, and artifacts for every run.
+- **MLflow:** Logs parameters, metrics, and artifacts for every training and evaluation run.
 - **DagsHub:** Remote MLflow tracking server.
-- **DVC:** Versions datasets and model artifacts.
+- **DVC:** Versions raw data, processed datasets, and model artifacts.
 - **Configuration:** All hyperparameters stored in `config/config.yaml` and `config/params.yaml`.
-- **Manual Logging:** Hyperparameters are logged without Optuna optimization.
+- **Manual Logging:** Hyperparameters logged without Optuna optimization to keep the pipeline lightweight.
 
 **Evaluation**
 
@@ -148,12 +137,13 @@ Metrics are saved to `metrics/evaluation_metrics.json` and logged to MLflow.
   - Max sequence length: 512, 1024.
 - **Replication:** Run multiple seeds where compute permits and report mean ± standard deviation.
 
-**Deployment as a Research Artifact**
+**Deployment as a Production Artifact**
 
 - **Inference API:** FastAPI service with `/health` and `/generate` endpoints.
-- **Containerization:** Docker and Docker Compose.
-- **Optional Cloud:** AWS ECR, Lambda, API Gateway, and Terraform.
-- **Purpose:** Demonstration, user studies, and external review.
+- **Containerization:** Docker and Docker Compose for local reproducibility.
+- **Cloud Deployment:** AWS ECR for images, Lambda/API Gateway for serverless inference, or ECS for GPU-backed serving.
+- **Infrastructure as Code:** Terraform for repeatable AWS provisioning.
+- **Purpose:** Production-ready code-generation service.
 
 **Reproducibility Plan**
 
@@ -166,12 +156,12 @@ Metrics are saved to `metrics/evaluation_metrics.json` and logged to MLflow.
 
 **Hardware Requirements**
 
-- **Hardware**: NVIDIA GPU with at least 8GB VRAM (RTX A4000 recommended)
-- **CUDA**: 12.4 or higher
-- **Python**: 3.11 or higher
-- **Docker**: 24.0 or higher (for container deployment)
-- **AWS CLI**: Configured with appropriate credentials (for AWS deployment)
-- **DagsHub Account**: For experiment tracking and DVC remote storage
+- **Hardware**: NVIDIA GPU with at least 8GB VRAM (RTX A4000 recommended).
+- **CUDA**: 12.4 or higher.
+- **Python**: 3.11 or higher.
+- **Docker**: 24.0 or higher (for container deployment).
+- **AWS CLI**: Configured with appropriate credentials (for AWS deployment).
+- **DagsHub Account**: For experiment tracking and DVC remote storage.
 
 **Ethical Considerations**
 
@@ -185,10 +175,26 @@ Metrics are saved to `metrics/evaluation_metrics.json` and logged to MLflow.
 - BLEU, ROUGE, and BERTScore may not fully reflect code correctness.
 - 4-bit quantization may affect generation quality.
 - Hyperparameters are manually logged rather than optimized.
-- AWS deployment is for research demonstrations, not production workloads.
+- AWS Lambda is suitable for demos; GPU-backed serving is recommended for production.
 - Stack Overflow data may contain biases and outdated solutions.
 
-**Project Structure**
+---
+
+## Features
+
+- **DPO Fine-tuning with QLoRA**: Efficient 4-bit quantization + LoRA adapters
+- **Experiment Tracking**: MLflow with DagsHub integration
+- **Data Version Control**: DVC for dataset and model versioning
+- **Hyperparameter Logging**: Manual parameter logging (no Optuna optimization)
+- **Comprehensive Metrics**: BLEU, ROUGE, BERTScore, perplexity, code quality metrics
+- **Multi-language Support**: Python, JavaScript, Java, C++, Go, Rust, SQL detection
+- **Docker Containerization**: Easy deployment with Docker Compose
+- **AWS Deployment**: ECR, Lambda, API Gateway with Terraform
+- **Integration Tests**: Pytest with coverage reporting
+
+---
+
+## Project Structure
 
 ```text
 llmops-rag-pipeline/
@@ -243,7 +249,7 @@ llmops-rag-pipeline/
 
 ---
 
-## Get Start - Step-By-Step
+## Get Started - Step-By-Step
 
 ### Initial Setup Checklist
 
@@ -389,8 +395,6 @@ git commit -m "Configure DVC with DagsHub remote"
 **Step 4: Prepare Data**
 
 **4.1 Download Stack Overflow Dataset**
-
-Download the Stack Overflow dataset from Kaggle:
 
 ```bash
 # Install kaggle CLI
@@ -618,6 +622,8 @@ mlflow ui --backend-store-uri sqlite:///mlruns/mlflow.db --port 5000
 - **Search**: Filter runs by parameters or metrics
 - **Compare**: Compare multiple runs side-by-side
 
+---
+
 ## Docker Deployment
 
 **Build and Run Locally**
@@ -651,6 +657,15 @@ curl -X POST http://localhost:8000/generate \
   }'
 ```
 
+**Expected response:**
+
+```json
+{
+  "generated_text": "To reverse a list in Python, you can use the reverse() method or slicing...",
+  "latency_ms": 412
+}
+```
+
 **Stop Containers**
 
 ```bash
@@ -660,6 +675,19 @@ docker-compose down
 # Remove volumes
 docker-compose down -v
 ```
+
+**Docker Commands Reference**
+
+| Command | Description |
+|---------|-------------|
+| `docker build -t llmops-rag-model .` | Build image |
+| `docker run --gpus all -p 8000:8000 llmops-rag-model` | Run container with GPU |
+| `docker ps` | List running containers |
+| `docker stop <container_id>` | Stop container |
+| `docker rm <container_id>` | Remove container |
+| `docker rmi llmops-rag-model` | Remove image |
+
+---
 
 ## AWS Deployment
 
@@ -715,9 +743,85 @@ terraform destroy
 **API Gateway Endpoint**
 
 After deployment, you'll receive an API Gateway URL:
+
 ```text
 https://{api-id}.execute-api.{region}.amazonaws.com/prod/generate
 ```
+
+**Production Recommendation**
+
+- **Lambda:** Suitable for demos and low-traffic endpoints. Cold starts and CPU-only inference will be slow for a 0.6B model.
+- **ECS/EKS with GPU:** Recommended for production. Use ECR for images, ECS Fargate or EC2 GPU instances for serving, and an Application Load Balancer for traffic.
+- **SageMaker Endpoint:** Recommended if you want managed scaling and monitoring.
+
+---
+
+## API Usage
+
+**Swagger Documentation**
+
+Once deployed, access the interactive API documentation at:
+- Local: `http://localhost:8000/docs`
+- AWS: `https://{api-id}.execute-api.{region}.amazonaws.com/prod/docs`
+
+**Health Endpoint**
+
+**GET** `/health`
+
+**Response:**
+
+```json
+{
+  "status": "ok",
+  "model": "qwen-dpo-final",
+  "device": "cuda"
+}
+```
+
+**Generation Endpoint**
+
+**POST** `/generate`
+
+**Request Body:**
+
+```json
+{
+  "prompt": "How to reverse a list in Python?",
+  "max_new_tokens": 512,
+  "temperature": 0.7,
+  "top_p": 0.95,
+  "top_k": 50
+}
+```
+
+**Response:**
+
+```json
+{
+  "generated_text": "You can reverse a list in Python using slicing: my_list[::-1] ...",
+  "latency_ms": 412
+}
+```
+
+**Python Client Example**
+
+```python
+import requests
+
+url = "http://localhost:8000/generate"
+payload = {
+    "prompt": "How to reverse a list in Python?",
+    "max_new_tokens": 512,
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "top_k": 50
+}
+
+response = requests.post(url, json=payload)
+print(response.json())
+```
+
+---
 
 ## Testing
 
@@ -755,7 +859,9 @@ print(clean_html('<p>Hello <b>World</b></p>'))
 "
 ```
 
-## Environment Variables
+---
+
+**Environment Variables**
 
 Create a `.env` file for persistent configuration:
 
@@ -784,10 +890,13 @@ MLFLOW_EXPERIMENT_NAME=llmops-rag-pipeline
 ```
 
 Load environment variables:
+
 ```bash
 source .env
 # Or use python-dotenv
 ```
+
+---
 
 ## Monitoring and Logging
 
@@ -840,6 +949,16 @@ dvc metrics show
 dvc plots show
 ```
 
+**Production Monitoring Recommendations**
+
+- **API Latency:** Track p50/p95/p99 latency for `/generate`.
+- **Error Rates:** Monitor 4xx/5xx responses via API Gateway or ALB logs.
+- **GPU Utilization:** Use CloudWatch or Prometheus with NVIDIA DCGM exporter for GPU-backed serving.
+- **Model Drift:** Periodically re-run evaluation on fresh prompts and compare metrics against the MLflow baseline.
+- **Cost:** Track GPU hours, Lambda invocations, and ECR storage.
+
+---
+
 ## Troubleshooting
 
 **DagsHub Authentication Issues**
@@ -868,7 +987,7 @@ mlflow experiments create -n llmops-rag-pipeline
 
 **Out of Memory (OOM)**
 
-```bash
+```yaml
 # Reduce batch size in config/config.yaml
 per_device_train_batch_size: 1
 gradient_accumulation_steps: 16
@@ -894,10 +1013,31 @@ file data/raw/Questions.csv
 sample_size: 100  # instead of 1000
 ```
 
-## Contributing
+**Docker Issues**
 
-Contributions are welcome for research reproducibility, evaluation metrics, ablation support, and documentation. Please open an issue or pull request with a clear description, and ensure tests pass before submitting.
+```bash
+# Check if Docker is installed
+docker --version
+
+# Verify GPU is available to Docker
+docker run --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
+
+# Install NVIDIA Container Toolkit if GPU is not detected
+# https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+```
+
+**AWS Lambda Timeouts**
+
+- Lambda has a 15-minute maximum timeout and limited memory.
+- For a 0.6B model, cold starts and CPU-only inference will be slow.
+- Recommended: move to ECS with GPU or SageMaker endpoint for production.
 
 ---
 
-**Note**: This pipeline is designed for educational and research purposes. For production use, ensure proper security, monitoring, and scaling configurations.
+## Contributing
+
+Contributions are welcome for production hardening, evaluation metrics, ablation support, and documentation. Please open an issue or pull request with a clear description, and ensure tests pass before submitting.
+
+---
+
+**Note**: This pipeline is designed for production and educational purposes. For real deployments, ensure proper security, monitoring, scaling, access control, and compliance with the licenses of the data and base model.
