@@ -1,5 +1,74 @@
 # Fine-Tuning LLM (LLMOps Pipeline) - Production ML Engineering Pipeline
 
+## Table of Contents
+
+- Introduction
+- Methodology
+  - Design
+  - Core Components
+  - High-Level Workflow
+  - Hypotheses
+  - Data Collection and Preprocessing
+  - Model and Training
+  - Experiment Tracking and Versioning
+  - Evaluation
+  - Experimental Conditions and Ablations
+  - Deployment as a Production Artifact
+  - Reproducibility Plan
+  - Hardware Requirements
+  - Ethical Considerations
+  - Limitations
+  - Features
+  - Project Structure
+- Get Started - Step-By-Step
+  - Initial Setup Checklist
+  - Model Experiment
+    - Step 1: Environment Setup
+    - Step 2: Install Dependencies
+    - Step 3: Configure DagsHub and MLflow
+    - Step 4: Prepare Data
+    - Step 5: Run Preprocessing
+    - Step 6: Log Hyperparameters For Experiments Tracking (Manual)
+    - Step 7: Train Model
+    - Step 8: Evaluate Model
+    - Step 9: View MLflow Dashboard
+- Docker Deployment
+  - Build and Run Locally
+  - Test the API
+  - Stop Containers
+  - Docker Commands Reference
+- AWS Deployment
+  - Setup AWS Requirements
+  - Deploy with Python Script
+  - Deploy with Terraform
+  - API Gateway Endpoint
+  - Production Recommendation
+- API Usage
+  - Swagger Documentation
+  - Health Endpoint
+  - Generation Endpoint
+  - Python Client Example
+- Testing
+  - Run All Tests
+  - Run Specific Tests
+  - Test with Sample Data
+- Environment Variables
+- Monitoring and Logging
+  - MLflow Metrics Tracked
+  - View MLflow Dashboard
+  - View DVC Pipeline Status
+  - Production Monitoring Recommendations
+- Troubleshooting
+  - DagsHub Authentication Issues
+  - MLflow Permission Issues
+  - Out of Memory (OOM)
+  - Data Loading Issues
+  - Docker Issues
+  - AWS Lambda Timeouts
+- Contributing
+
+## Introduction
+
 A production-ready LLMOps pipeline for fine-tuning **Qwen3-0.6B** using **Direct Preference Optimization (DPO)** with **QLoRA**, and deploying a containerized inference service to AWS. This pipeline includes experiment tracking with MLflow on DagsHub, data version control with DVC, containerization with Docker, and comprehensive model evaluation for code-generation quality.
 
 This project is a **production-oriented LLMOps pipeline** for fine-tuning **Qwen3-0.6B** using **DPO + QLoRA**. It is designed for ML engineers who need to take a small language model from raw data through training, evaluation, packaging, and deployment. The pipeline covers the full lifecycle of a production language model service:
